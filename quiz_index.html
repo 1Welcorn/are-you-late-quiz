@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Are You Late? - Workplace Punctuality Quiz</title>
+    <link rel="stylesheet" href="late_style.css">
+    </head>
+<body>
+    <div class="quiz-container">
+        <!-- Audio Enable Overlay -->
+        <div id="audio-overlay" class="audio-overlay" style="display: none;">
+            <div class="audio-overlay-content">
+                <div class="audio-icon">⏰</div>
+                <h3>Audio Available</h3>
+                <p>Hover over choice cards to hear pronunciation!</p>
+                <button onclick="enableAudioAndHide()" class="enable-audio-btn">
+                    <span>Enable Audio</span>
+                    <span class="btn-icon">🎵</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Modern Header -->
+        <header class="quiz-header">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1 class="quiz-title">
+                        <span class="title-icon">⏰</span>
+                        Are You Late? Quiz
+                    </h1>
+                    <p class="quiz-subtitle">Test your knowledge about workplace punctuality</p>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-indicator">
+                        <span class="progress-text">Question <span id="current-q">1</span> of <span id="total-q">10</span></span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="score-display">
+                        <span class="score-label">Score</span>
+                        <span class="score-value" id="current-score">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content Grid -->
+        <main class="quiz-main">
+            <div class="content-grid">
+                <!-- Video Section -->
+                <section class="video-section">
+                    <div class="video-wrapper">
+                        <div class="video-container">
+                            <iframe 
+                                id="quiz-video"
+                                src="https://www.youtube-nocookie.com/embed/mCS6_G5hOKU?autoplay=0&controls=1&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=file://"
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                referrerpolicy="no-referrer"
+                                class="context-video">
+                            </iframe>
+                            <div class="video-overlay">
+                                <div class="video-caption">Watch the video about being late to work</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Question Section -->
+                <section class="question-section">
+                    <div class="question-wrapper">
+                        <div class="question-header">
+                            <div class="question-number" id="question-number">1</div>
+                            <h2 class="question-text" id="question-text">Loading question...</h2>
+                        </div>
+                        
+                        <div class="choices-grid" id="choices-container"></div>
+                        
+                        <div class="feedback-container" id="feedback-text"></div>
+                        
+                        <div class="action-buttons">
+                            <button class="next-button" id="next-button" onclick="moveToNextQuestion()" style="display: none;">
+                                <span class="button-text">Next Question</span>
+                                <span class="button-icon">→</span>
+        </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 1. Quiz Data Structure - Being Late Theme ---
+        const quizQuestions = [
+            { 
+                question: "What is the video about?", 
+                choices: ["being late", "being on time"], 
+                answer: "being late",
+                explanation: "The video focuses on the topic of being late to work and the various excuses people use. It explores workplace punctuality issues and their consequences.",
+                wrongFeedback: "While being on time is important, this video specifically examines the problem of being late and the excuses people make."
+            },
+            { 
+                question: "What percentage of employees are late to work at least once a month?", 
+                choices: ["10%", "30%"], 
+                answer: "30%",
+                explanation: "According to the video, 30% of employees are late to work at least once a month. This shows that lateness is a common workplace issue.",
+                wrongFeedback: "10% would be a very low number. The actual statistic shows that 30% of employees struggle with punctuality at least monthly."
+            },
+            { 
+                question: "What is the most common excuse for being late?", 
+                choices: ["traffic", "sick"], 
+                answer: "traffic",
+                explanation: "Traffic is the most common excuse people give for being late to work. It's a convenient excuse that's hard to verify.",
+                wrongFeedback: "While being sick is a valid reason, traffic is actually the most frequently used excuse for lateness."
+            },
+            { 
+                question: "In New York, what excuse do people often give for being late?", 
+                choices: ["the subway", "the weather"], 
+                answer: "the subway",
+                explanation: "In New York, people often blame the subway system for their lateness. Subway delays are a common occurrence in the city.",
+                wrongFeedback: "While weather can affect travel, New Yorkers specifically blame subway problems for their lateness more often."
+            },
+            { 
+                question: "What percentage blame oversleeping?", 
+                choices: ["10%", "30%"], 
+                answer: "more than 30%",
+                explanation: "More than 30% of people blame oversleeping for being late. This shows that poor time management and sleep habits contribute to lateness.",
+                wrongFeedback: "The actual percentage is higher than 30%. Oversleeping is a major cause of workplace lateness."
+            },
+            { 
+                question: "What unusual animal was used in an excuse?", 
+                choices: ["dog", "turtle"], 
+                answer: "turtle",
+                explanation: "Someone used a turtle as an excuse for being late. This is an unusual and creative excuse that was mentioned in the video.",
+                wrongFeedback: "While dogs are common pets, a turtle was the unusual animal mentioned as an excuse for lateness."
+            },
+            { 
+                question: "What did someone blame for being late: their mother-in-law or the president?", 
+                choices: ["mother-in-law", "president"], 
+                answer: "mother-in-law",
+                explanation: "Someone actually blamed their mother-in-law for being late to work. This shows how creative people can get with their excuses.",
+                wrongFeedback: "While blaming the president might seem extreme, someone actually blamed their mother-in-law for their lateness."
+            },
+            { 
+                question: "What sport was mentioned as a reason for being late?", 
+                choices: ["soccer", "baseball"], 
+                answer: "soccer",
+                explanation: "Soccer was mentioned as a reason for being late. People sometimes use sports-related excuses for their workplace lateness.",
+                wrongFeedback: "While baseball is popular, soccer was the sport specifically mentioned as an excuse for being late."
+            },
+            { 
+                question: "How do some people make up for being late?", 
+                choices: ["leave early", "stay longer"], 
+                answer: "stay longer",
+                explanation: "Some people try to make up for being late by staying longer at work. This is an attempt to compensate for their tardiness.",
+                wrongFeedback: "Leaving early would make the situation worse. People who are late often try to compensate by staying longer."
+            },
+            { 
+                question: "What do 40% of bosses do to employees who are often late?", 
+                choices: ["give a raise", "fire them"], 
+                answer: "fire them",
+                explanation: "40% of bosses fire employees who are often late. This shows the serious consequences of chronic lateness in the workplace.",
+                wrongFeedback: "Bosses don't reward lateness with raises. 40% of bosses actually fire employees who are consistently late."
+            },
+        ];
+
+        // --- 2. Game State Variables ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false; 
+        let audioEnabled = true; // Audio toggle
+
+        // --- 3. DOM Element References ---
+        const questionTextEl = document.getElementById('question-text');
+        const choicesContainerEl = document.getElementById('choices-container');
+        const feedbackEl = document.getElementById('feedback-text');
+        const nextButtonEl = document.getElementById('next-button');
+        const currentQEl = document.getElementById('current-q');
+        const totalQEl = document.getElementById('total-q');
+        const progressFillEl = document.getElementById('progress-fill');
+        const questionNumberEl = document.getElementById('question-number');
+        const currentScoreEl = document.getElementById('current-score');
+
+        // --- 4. Helper Function: Randomize Array Order ---
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // --- 5. Main Function: Display Question and Choices ---
+        function displayQuestion() {
+            answered = false;
+            feedbackEl.textContent = ''; 
+            nextButtonEl.style.display = 'none'; 
+
+            if (currentQuestionIndex >= quizQuestions.length) {
+                // Quiz is finished
+                endQuiz();
+                return;
+            }
+
+            const currentQ = quizQuestions[currentQuestionIndex];
+            questionTextEl.textContent = currentQ.question;
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            currentQEl.textContent = currentQuestionIndex + 1;
+            totalQEl.textContent = quizQuestions.length;
+            currentScoreEl.textContent = score;
+            
+            // Update progress bar
+            const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+            progressFillEl.style.width = progress + '%';
+            
+            choicesContainerEl.innerHTML = ''; 
+
+            let shuffledChoices = [...currentQ.choices]; 
+            shuffle(shuffledChoices); 
+
+            shuffledChoices.forEach((choice, index) => {
+                const card = document.createElement('div');
+                card.classList.add('choice-card');
+                card.innerHTML = `
+                    <span class="choice-text">${choice}</span>
+                    <span class="choice-icon">${String.fromCharCode(65 + index)}</span>
+                `;
+                
+                // Add audio functionality
+                card.addEventListener('click', () => {
+                    // Enable audio on first click
+                    enableAudio();
+                    // Play audio for the word clicked
+                    speakText(choice, 'en-US');
+                    handleAnswer(card, choice, currentQ.answer);
+                });
+                
+                // Add hover audio preview
+                card.addEventListener('mouseenter', () => {
+                    console.log('Hover detected on:', choice, 'Audio enabled:', audioEnabled);
+                    if (audioEnabled && audioEnabledByUser) {
+                        speakText(choice, 'en-US');
+                    } else if (audioEnabled && !audioEnabledByUser) {
+                        // Show overlay to enable audio
+                        document.getElementById('audio-overlay').style.display = 'flex';
+                    }
+                });
+                
+                choicesContainerEl.appendChild(card);
+            });
+        }
+
+        // --- 6. Audio Functions ---
+        let audioInitialized = false;
+        let audioEnabledByUser = false;
+        
+        function enableAudio() {
+            if (!audioEnabledByUser) {
+                // Enable audio without playing a message
+                audioEnabledByUser = true;
+                audioInitialized = true;
+                console.log('Audio enabled by user interaction');
+            }
+        }
+        
+        function enableAudioAndHide() {
+            enableAudio();
+            document.getElementById('audio-overlay').style.display = 'none';
+        }
+        
+        // Voice selection and caching
+        let bestVoice = null;
+        let voicesLoaded = false;
+        
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            console.log('Available voices count:', voices.length);
+            
+            if (voices.length === 0) {
+                console.log('Voices not loaded yet, will retry...');
+                return false;
+            }
+            
+            console.log('Available voices:', voices.map(v => v.name));
+            
+            // Priority list for most pleasant voices
+            const voicePriority = [
+                // Google voices (usually most natural)
+                'Google UK English Female',
+                'Google UK English Male', 
+                'Google US English Female',
+                'Google US English Male',
+                'Google Australian English Female',
+                'Google Australian English Male',
+                
+                // Microsoft voices
+                'Microsoft Zira Desktop - English (United States)',
+                'Microsoft David Desktop - English (United States)',
+                'Microsoft Hazel Desktop - English (Great Britain)',
+                'Microsoft Susan Desktop - English (United States)',
+                
+                // Enhanced/Natural voices
+                'Natural',
+                'Enhanced',
+                'Premium',
+                'Neural',
+                
+                // Female voices (often more pleasant)
+                'Female',
+                'Woman',
+                'Girl',
+                
+                // Any English voice
+                'English'
+            ];
+            
+            // Find the best voice
+            for (const priority of voicePriority) {
+                bestVoice = voices.find(voice => 
+                    voice.lang.startsWith('en') && 
+                    voice.name.toLowerCase().includes(priority.toLowerCase())
+                );
+                if (bestVoice) break;
+            }
+            
+            // Fallback to any English voice
+            if (!bestVoice) {
+                bestVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+            }
+            
+            voicesLoaded = true;
+            console.log('Selected voice:', bestVoice ? bestVoice.name : 'Default');
+            return true;
+        }
+        
+        function speakText(text, language = 'en-US') {
+            if (!audioEnabled) {
+                console.log('Audio disabled');
+                return;
+            }
+            
+            if (!audioEnabledByUser) {
+                console.log('Audio not enabled by user yet');
+                return;
+            }
+            
+            console.log('Speaking:', text);
+            
+            // Try to load voices, retry if not loaded
+            if (!voicesLoaded) {
+                const loaded = loadVoices();
+                if (!loaded) {
+                    // Retry after a short delay
+                    setTimeout(() => {
+                        speakText(text, language);
+                    }, 200);
+                    return;
+                }
+            }
+            
+            // Cancel any ongoing speech
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = language;
+            
+            // Use the best voice if available
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+                console.log('Using voice:', bestVoice.name);
+            } else {
+                console.log('Using default voice');
+            }
+            
+            // Optimized settings for most natural sound
+            utterance.rate = 0.85;          // Slightly slower for clarity
+            utterance.pitch = 1.05;         // Slightly higher for warmth
+            utterance.volume = 0.95;        // High volume for clarity
+            
+            // Add natural pauses and emphasis
+            const processedText = text
+                .replace(/\?/g, '? ')        // Add pause after questions
+                .replace(/!/g, '! ')         // Add pause after exclamations
+                .replace(/,/g, ', ')         // Add pause after commas
+                .replace(/\./g, '. ')        // Add pause after periods
+                .replace(/\s+/g, ' ')        // Clean up extra spaces
+                .trim();
+            
+            utterance.text = processedText;
+            
+            // Add event listeners
+            utterance.onstart = () => console.log('Audio started:', text);
+            utterance.onend = () => console.log('Audio ended:', text);
+            utterance.onerror = (event) => console.log('Audio error:', event.error);
+            
+            // Ensure clean start
+            setTimeout(() => {
+                window.speechSynthesis.speak(utterance);
+            }, 100);
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const audioBtn = document.getElementById('audio-btn');
+            if (audioEnabled) {
+                audioBtn.textContent = '⏰ Audio On';
+                audioBtn.style.background = '#28a745';
+            } else {
+                audioBtn.textContent = '🔇 Audio Off';
+                audioBtn.style.background = '#6c757d';
+                // Stop any ongoing speech
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        // --- 7. Event Handler: Check Answer ---
+        function handleAnswer(cardElement, selectedAnswer, correctAnswer) {
+            if (answered) return; 
+            answered = true;
+
+            const currentQ = quizQuestions[currentQuestionIndex];
+
+            if (selectedAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                cardElement.classList.add('correct');
+                
+                // Play success audio
+                speakText("Excellent! " + correctAnswer, 'en-US');
+                feedbackEl.innerHTML = `
+                    <div class="feedback-correct">
+                        <div class="feedback-header">⏰ <strong>Excellent!</strong></div>
+                        <div class="feedback-explanation">${currentQ.explanation}</div>
+                        <div class="feedback-reinforcement">You correctly answered about workplace punctuality! This shows you understand the importance of being on time.</div>
+                    </div>
+                `;
+                score++;
+            } else {
+                cardElement.classList.add('incorrect');
+                
+                // Play correction audio
+                speakText("The correct answer is " + correctAnswer, 'en-US');
+                feedbackEl.innerHTML = `
+                    <div class="feedback-incorrect">
+                        <div class="feedback-header">⏰ <strong>Let's learn together!</strong></div>
+                        <div class="feedback-wrong">Your answer: "<strong>${selectedAnswer}</strong>" - ${currentQ.wrongFeedback}</div>
+                        <div class="feedback-correct-answer">Correct answer: "<strong>${correctAnswer}</strong>" - ${currentQ.explanation}</div>
+                        <div class="feedback-reinforcement">💼 <strong>Remember:</strong> Workplace punctuality is important! Being on time shows professionalism and respect for others.</div>
+                    </div>
+                `;
+                
+                // Highlight the correct answer
+                Array.from(choicesContainerEl.children).forEach(child => {
+                    if (child.textContent.toLowerCase() === correctAnswer.toLowerCase()) {
+                        child.classList.add('correct');
+                    }
+                });
+            }
+
+            // Disable all cards
+            Array.from(choicesContainerEl.children).forEach(child => {
+                child.classList.add('disabled');
+            });
+
+            nextButtonEl.style.display = 'block'; 
+        }
+
+        // --- 7. Event Handler: Move to Next Question ---
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        // --- 8. Function: End Quiz ---
+        function endQuiz() {
+            const percentage = Math.round((score / quizQuestions.length) * 100);
+            let grade = '';
+            let message = '';
+            let supportingMessage = '';
+            let celebrationEmoji = '';
+            
+            // Grade calculation with enhanced messages
+            if (percentage >= 90) {
+                grade = 'A+';
+                message = 'Punctuality Master! ⏰';
+                supportingMessage = 'You have mastered workplace punctuality concepts! Your understanding of being on time and workplace etiquette is excellent. You\'re ready for any professional environment!';
+                celebrationEmoji = '⏰🏆💼';
+            } else if (percentage >= 80) {
+                grade = 'A';
+                message = 'Time Management Pro! ⭐';
+                supportingMessage = 'You have a strong grasp of workplace punctuality! You clearly understand the importance of being on time and professional behavior. You\'re doing great!';
+                celebrationEmoji = '⏰⭐';
+            } else if (percentage >= 70) {
+                grade = 'B';
+                message = 'Professional Achievement! 💼';
+                supportingMessage = 'You have a solid understanding of workplace punctuality! You\'re on the right track and with a bit more practice, you\'ll master professional time management completely.';
+                celebrationEmoji = '⏰';
+            } else if (percentage >= 60) {
+                grade = 'C';
+                message = 'Keep Learning! 📚';
+                supportingMessage = 'You\'re making progress with workplace punctuality! Keep studying professional behavior and time management - you\'ll get better with each attempt. Don\'t give up!';
+                celebrationEmoji = '💪';
+            } else {
+                grade = 'D';
+                message = 'Stay Motivated! 🌟';
+                supportingMessage = 'Workplace punctuality can be challenging, but don\'t worry! Every professional was once a beginner. Practice makes perfect - try again and you\'ll improve your time management skills!';
+                celebrationEmoji = '📖';
+            }
+            
+            questionTextEl.textContent = "Quiz Complete! " + celebrationEmoji;
+            choicesContainerEl.innerHTML = `
+                <div class="final-results">
+                    <div class="congratulations">
+                        <h2>Quiz Complete!</h2>
+                        <div class="celebration">${celebrationEmoji}</div>
+                    </div>
+                    
+                    <div class="results-summary">
+                        <h3>Your Punctuality Quiz Results</h3>
+                        <div class="score-display">
+                            <div class="score-circle">
+                                <span class="score-number">${score}</span>
+                                <span class="score-total">/ ${quizQuestions.length}</span>
+                            </div>
+                            <div class="grade-info">
+                                <div class="percentage">${percentage}%</div>
+                                <div class="grade">Grade: ${grade}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="feedback-section">
+                        <h4>${message}</h4>
+                        <p class="supporting-message">${supportingMessage}</p>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button onclick="restartQuiz()" class="restart-button">🔄 Take Quiz Again</button>
+                        <button onclick="window.location.reload()" class="new-session-button">🆕 New Session</button>
+                    </div>
+                </div>
+            `;
+            feedbackEl.textContent = '';
+            nextButtonEl.style.display = 'none';
+        }
+
+
+        // --- 10. Restart Quiz Function ---
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+            displayQuestion();
+        }
+
+        // --- 11. Video Loading and Setup ---
+        function setupVideo() {
+            const video = document.getElementById('quiz-video');
+            if (video) {
+                console.log('Video iframe found and ready');
+                
+                // Add event listeners for video events
+                video.addEventListener('load', function() {
+                    console.log('✅ Video iframe loaded successfully');
+                });
+                
+                video.addEventListener('error', function(e) {
+                    console.log('❌ Video error: ' + e.type);
+                });
+            } else {
+                console.log('❌ Video iframe not found');
+            }
+        }
+
+        // --- 12. Initialization ---
+        nextButtonEl.addEventListener('click', moveToNextQuestion);
+        document.addEventListener('DOMContentLoaded', function() {
+            displayQuestion();
+            setupVideo();
+            
+            console.log('Page loaded, audio enabled:', audioEnabled);
+            console.log('Speech synthesis available:', 'speechSynthesis' in window);
+            
+            // Load voices when they become available
+            if ('speechSynthesis' in window) {
+                speechSynthesis.addEventListener('voiceschanged', function() {
+                    console.log('Voices changed event fired');
+                    loadVoices();
+                });
+                
+                // Try to load voices immediately
+                const loaded = loadVoices();
+                if (!loaded) {
+                    // If not loaded, try again after a delay
+                    setTimeout(() => {
+                        console.log('Retrying voice loading...');
+                        loadVoices();
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+    </body>
+</html>
